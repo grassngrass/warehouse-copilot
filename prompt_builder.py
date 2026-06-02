@@ -1,73 +1,67 @@
-from schema import SCHEMA
+from schema import WAREHOUSE_ONTOLOGY
+from sql_executor import execute_sql
+
+
+def get_sample_data():
+
+    try:
+
+        df = execute_sql("""
+        SELECT TOP 5
+            BinCode,
+            PlantCode,
+            Current_Bin_Location,
+            Current_Material,
+            Current_Quantity,
+            Current_Bin_Weight,
+            Updated_By_EmpName
+        FROM dbo.MasterBin
+        """)
+
+        return df.to_string(index=False)
+
+    except Exception:
+
+        return "No sample data available."
 
 
 def build_prompt(question):
 
+    sample_data = get_sample_data()
+
     return f"""
-You are a SQL Server expert.
-IMPORTANT:
+You are an intelligent Warehouse AI Assistant.
 
-This is Microsoft SQL Server.
-All columns of type nvarchar must be compared using quoted string literals.
-Important:
-BinCode, ReferenceCode, Barcode and most identifiers are NVARCHAR.
-When filtering them, always use single quotes.
+Your job is:
 
-Example:
-WHERE BinCode = '1'
-NOT WHERE BinCode = 1
+1. Understand warehouse business language.
+2. Translate user questions into SQL Server queries.
+3. Use warehouse relationships and business meaning.
+4. Return ONLY SQL.
+5. No explanations.
+6. No markdown.
+7. SQL Server syntax only.
+8. Use TOP instead of LIMIT.
+9. Use ONLY dbo.MasterBin.
+10. Generate SELECT statements only.
 
-Use:
-TOP N
+{WAREHOUSE_ONTOLOGY}
 
-Examples:
-SELECT TOP 1 *
-FROM dbo.MasterBin;
+===================================================
+SAMPLE DATA
+===================================================
 
-Never use:
-LIMIT
-OFFSET
-FETCH FIRST
+{sample_data}
 
-Database:
+===================================================
+USER QUESTION
+===================================================
 
-{SCHEMA}
-
-Examples:
-
-Question:
-How many bins are there?
-
-SQL:
-SELECT COUNT(*) AS TotalBins
-FROM dbo.MasterBin;
-
-Question:
-Show top 5 bins
-
-SQL:
-SELECT TOP 5 *
-FROM dbo.MasterBin;
-
-Question:
-Show top 10 locations
-
-SQL:
-SELECT TOP 10 Current_Bin_Location
-FROM dbo.MasterBin;
-
-Question:
-Count bins by plant
-
-SQL:
-SELECT PlantCode,
-       COUNT(*) AS BinCount
-FROM dbo.MasterBin
-GROUP BY PlantCode;
-
-User Question:
 {question}
 
+===================================================
+OUTPUT
+===================================================
+
 Return ONLY SQL.
-No explanation.
 """
