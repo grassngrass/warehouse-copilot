@@ -6,7 +6,32 @@ A Bin represents a physical warehouse container.
 Primary Identifier:
 - BinCode
 
-Identifiers (always strings):
+Unique Warehouse Identifier:
+- Barcode
+
+IMPORTANT:
+
+Barcode is the primary tracking and linking identifier used across warehouse operations.
+
+Each Barcode uniquely identifies a physical bin.
+
+Barcode can be used to:
+- Track a bin
+- Locate a bin
+- Retrieve bin information
+- Link warehouse transactions to a bin
+
+When a user asks about a barcode, treat it as a unique bin identifier.
+
+Example:
+
+"Show details for barcode XYZ123"
+
+→ Search using Barcode
+
+===================================================
+
+Identifiers (always strings)
 
 - BinCode
 - ReferenceCode
@@ -27,8 +52,14 @@ Always compare identifiers as strings.
 GOOD:
 WHERE BinCode = 'FG34000001_HOLD'
 
+GOOD:
+WHERE Barcode = 'XYZ123'
+
 BAD:
 WHERE BinCode = 1
+
+BAD:
+WHERE Barcode = 12345
 
 ===================================================
 
@@ -59,6 +90,18 @@ Updated By
 
 Employee Code
 → Updated_By_EmpCode
+
+Barcode
+→ Unique warehouse tracking identifier
+
+BinCode
+→ Internal bin identifier
+
+A bin can be identified using either:
+- BinCode
+- Barcode
+
+If a user explicitly mentions a barcode, use the Barcode column.
 
 ===================================================
 
