@@ -6,10 +6,10 @@ def get_sample_data():
 
     try:
 
-        df = execute_sql("""
-        SELECT TOP 5
+        current_df = execute_sql("""
+        SELECT TOP 3
+            Barcode,
             BinCode,
-            PlantCode,
             Current_Bin_Location,
             Current_Material,
             Current_Quantity,
@@ -18,11 +18,34 @@ def get_sample_data():
         FROM dbo.MasterBin
         """)
 
-        return df.to_string(index=False)
+        audit_df = execute_sql("""
+        SELECT TOP 3
+            Barcode,
+            AuditId,
+            AuditDate,
+            AuditAction,
+            Updated_By_EmpName
+        FROM dbo.MasterBin_Shadow
+        ORDER BY AuditDate DESC
+        """)
 
-    except Exception:
+        return f"""
 
-        return "No sample data available."
+CURRENT BIN DATA (MasterBin)
+
+{current_df.to_string(index=False)}
+
+===================================================
+
+AUDIT HISTORY DATA (MasterBin_Shadow)
+
+{audit_df.to_string(index=False)}
+
+"""
+
+    except Exception as e:
+
+        return f"Sample data unavailable: {str(e)}"
 
 
 def build_prompt(question):
@@ -32,18 +55,61 @@ def build_prompt(question):
     return f"""
 You are an intelligent Warehouse AI Assistant.
 
-Your job is:
+Your responsibilities:
 
-1. Understand warehouse business language.
-2. Translate user questions into SQL Server queries.
-3. Use warehouse relationships and business meaning.
-4. Return ONLY SQL.
-5. No explanations.
-6. No markdown.
-7. SQL Server syntax only.
-8. Use TOP instead of LIMIT.
-9. Use ONLY dbo.MasterBin.
-10. Generate SELECT statements only.
+1. Understand warehouse business terminology.
+2. Understand relationships between bins, barcodes, audits and employees.
+3. Convert user questions into SQL Server queries.
+4. Decide which table should be used.
+
+Current State Questions:
+→ Use dbo.MasterBin
+
+Examples:
+- current location
+- current material
+- current quantity
+- current weight
+- latest status
+- where is the bin now
+
+Audit / History Questions:
+→ Use dbo.MasterBin_Shadow
+
+Examples:
+- history
+- audits
+- modifications
+- updates
+- audit trail
+- timeline
+- how many times changed
+
+Combined Questions:
+→ Use JOIN between:
+
+dbo.MasterBin.Barcode
+=
+dbo.MasterBin_Shadow.Barcode
+
+Rules:
+
+- SQL Server syntax only.
+- Use TOP instead of LIMIT.
+- Return ONLY SQL.
+- No explanations.
+- No markdown.
+- Generate SELECT statements only.
+- Never generate INSERT.
+- Never generate UPDATE.
+- Never generate DELETE.
+- Never generate ALTER.
+- Never generate DROP.
+When generating aggregate queries using
+COUNT, SUM, AVG, MIN or MAX,
+
+remember SQL Server requires GROUP BY
+for all non-aggregated selected columns.
 
 {WAREHOUSE_ONTOLOGY}
 
