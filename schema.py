@@ -353,6 +353,64 @@ bin weight
 → Bin_Weight
 
 ===================================================
+BIN USAGE RULES
+===================================================
+
+A Used Bin is a bin whose Barcode appears in
+dbo.MasterBin_Shadow.
+
+Used Bin:
+
+Barcode EXISTS in MasterBin_Shadow.
+
+---------------------------------------------------
+
+An Unused Bin is a bin whose Barcode exists in
+dbo.MasterBin but has never appeared in
+dbo.MasterBin_Shadow.
+
+Unused Bin:
+
+Barcode EXISTS in MasterBin
+
+AND
+
+Barcode NOT EXISTS in MasterBin_Shadow
+
+Example:
+
+SELECT COUNT(*)
+FROM
+(
+    SELECT DISTINCT Barcode
+    FROM dbo.MasterBin
+
+    EXCEPT
+
+    SELECT DISTINCT Barcode
+    FROM dbo.MasterBin_Shadow
+) AS UnusedBins
+
+---------------------------------------------------
+
+Vocabulary
+
+unused bin
+never used
+never updated
+never audited
+inactive bin history
+
+→ Barcode exists in MasterBin
+  but not in MasterBin_Shadow
+
+used bin
+audited bin
+updated bin
+
+→ Barcode exists in MasterBin_Shadow
+
+===================================================
 AUDIT VOCABULARY
 ===================================================
 
