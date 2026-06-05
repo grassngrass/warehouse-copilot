@@ -196,6 +196,17 @@ Employee Code
 Status
 → Bin_Status
 
+One Barcode
+→ One Current Location
+
+One Barcode
+→ Many Historical Locations
+
+One Barcode
+→ Many Movements
+
+Movement
+→ Location Change between audits
 
 Barcode
 → Unique warehouse tracking identifier
@@ -693,6 +704,137 @@ WHERE CAST(AuditDate AS DATE) = '2026-02-16'
 Do NOT use:
 
 WHERE AuditDate = '2026-02-16'
+
+===================================================
+LOCATION MOVEMENT ANALYTICS
+===================================================
+
+A Barcode can move between warehouse locations.
+
+Location history is stored in:
+
+dbo.MasterBin_Shadow
+
+Current location:
+
+MasterBin.Current_Bin_Location
+
+Historical locations:
+
+MasterBin_Shadow.Current_Bin_Location
+
+Movement History Query
+
+When user asks:
+
+- Show movement history
+- Show location history
+- Show movement timeline
+- Show location changes
+
+Use:
+
+LAG(Current_Bin_Location)
+OVER (
+    PARTITION BY Barcode
+    ORDER BY AuditDate
+)
+
+Return:
+
+AuditDate
+PreviousLocation
+Current_Bin_Location
+
+Movement history should show:
+
+From Location
+→
+To Location
+
+---------------------------------------------------
+
+Previous Location
+
+Use:
+
+LAG(Current_Bin_Location)
+
+over
+
+PARTITION BY Barcode
+ORDER BY AuditDate
+
+---------------------------------------------------
+
+Location Change
+
+A location change occurs when:
+
+Current_Bin_Location
+<>
+PreviousLocation
+
+---------------------------------------------------
+
+Movement History
+
+Movement history is the sequence of location changes
+for a barcode ordered by AuditDate.
+
+---------------------------------------------------
+
+Vocabulary
+
+moved
+movement
+movement history
+location history
+location changes
+bin movement
+transfer
+relocated
+previous location
+
+→ MasterBin_Shadow
+→ AuditDate
+→ Current_Bin_Location
+
+---------------------------------------------------
+
+Movement History Ordering
+
+Movement history must always be displayed
+chronologically.
+
+Use:
+
+ORDER BY AuditDate ASC
+
+Oldest audit first.
+
+Newest audit last.
+
+Do NOT use:
+
+ORDER BY AuditDate DESC
+
+for movement history.
+
+---------------------------------------------------
+
+Movement Timeline
+
+Movement timeline shows how a barcode moved
+from one location to another over time.
+
+Display order:
+
+Oldest
+→
+Newest
+
+===================================================
 
 ===================================================
 SQL AGGREGATION RULES
