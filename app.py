@@ -47,12 +47,36 @@ while True:
             print("\nOnly SELECT queries allowed.")
             continue
 
-        result = execute_sql(sql)
+        try:
+            result = execute_sql(sql)
+        except Exception as e:
+            print("\nSQL Error Detected:")
+            print(str(e))
+
+            fix_prompt = f"""
+Fix this SQL Server query.
+
+SQL:
+{sql}
+
+Error:
+{str(e)}
+
+Return ONLY corrected SQL.
+No explanation.
+SQL Server syntax only.
+"""
+
+            fixed_sql = ask_qwen(fix_prompt)
+
+            print("\nCorrected SQL:")
+            print(fixed_sql)
+
+            result = execute_sql(fixed_sql)
 
         print("\nResult:\n")
         print(result)
 
     except Exception as e:
-
         print("\nError:")
         print(e)

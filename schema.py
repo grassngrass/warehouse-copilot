@@ -614,6 +614,62 @@ Example:
 
 Current location and audit count.
 
+===================================================
+JOIN RELATIONSHIPS
+===================================================
+
+Primary Join
+
+MasterBin.Barcode
+=
+MasterBin_Shadow.Barcode
+
+---------------------------------------------------
+
+Current State
+
+MasterBin stores:
+
+- Current Location
+- Current Material
+- Current Quantity
+- Current Weight
+- Current Employee
+
+---------------------------------------------------
+
+Historical State
+
+MasterBin_Shadow stores:
+
+- Audit History
+- Previous Locations
+- Previous Materials
+- Audit Dates
+- Audit Actions
+
+---------------------------------------------------
+
+Common Join Analytics
+
+Current Location + Audit Count
+
+Current Material + Change Count
+
+Current Employee + Audit Activity
+
+Current State + Latest Audit Date
+
+Current State + First Audit Date
+
+Current State + Historical Changes
+
+Never Audited Bins
+
+Idle Bins
+
+Inventory Aging
+
 
 DATE RULES
 
@@ -637,6 +693,41 @@ WHERE CAST(AuditDate AS DATE) = '2026-02-16'
 Do NOT use:
 
 WHERE AuditDate = '2026-02-16'
+
+===================================================
+SQL AGGREGATION RULES
+===================================================
+
+When using:
+
+COUNT()
+SUM()
+AVG()
+MIN()
+MAX()
+
+All non-aggregated selected columns must be included in GROUP BY.
+
+GOOD:
+
+SELECT Current_Bin_Location,
+       COUNT(*) AS BinCount
+FROM dbo.MasterBin
+GROUP BY Current_Bin_Location
+
+GOOD:
+
+SELECT Barcode,
+       MAX(AuditDate)
+FROM dbo.MasterBin_Shadow
+GROUP BY Barcode
+
+BAD:
+
+SELECT Current_Bin_Location,
+       COUNT(*)
+FROM dbo.MasterBin
+
 
 AGGREGATION RULES
 
