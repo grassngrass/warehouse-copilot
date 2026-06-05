@@ -301,6 +301,116 @@ system user
 application user
 
 ===================================================
+BIN MOVEMENT ANALYTICS
+===================================================
+
+Idle Bin
+
+A bin is considered idle when it has had
+NO audit activity after a given date.
+
+Use:
+
+MAX(AuditDate)
+
+---------------------------------------------------
+
+Stagnant Bin
+
+A bin whose latest audit activity is very old.
+
+Example:
+
+No audit activity for 90 days.
+
+Use:
+
+MAX(AuditDate)
+
+---------------------------------------------------
+
+Non-Moving Bin
+
+A bin whose location has not changed for a long period.
+
+Use:
+
+Current_Bin_Location history from MasterBin_Shadow.
+
+---------------------------------------------------
+
+IMPORTANT DATE INTERPRETATION
+
+When user asks:
+
+- idle since April
+- not moved since April
+- stagnant since April
+- inactive since April
+
+DO NOT search for audits during April.
+
+Instead:
+
+Find bins whose latest audit date is
+before or equal to the specified date.
+
+Example:
+
+idle since April 2026
+
+→
+
+MAX(AuditDate) <= '2026-04-30'
+
+Idle Since Date
+
+A barcode whose latest audit activity
+occurred before the specified date.
+
+Implementation:
+
+GROUP BY Barcode
+
+HAVING MAX(AuditDate) <= specified_date
+
+Examples:
+
+Idle since April 2026
+Idle since January 2025
+Not moved since March
+No activity after June
+
+---------------------------------------------------
+
+Vocabulary
+
+idle
+stagnant
+inactive
+not moved
+non moving
+lying idle
+aging inventory
+old inventory
+
+→ MasterBin_Shadow
+→ MAX(AuditDate)
+
+Idle Inventory
+
+Inventory with no audit activity after a date.
+
+Example:
+
+Show bins lying idle since April
+
+Meaning:
+
+Latest audit occurred before May 1st
+and no further audits exist.
+
+===================================================
 WAREHOUSE VOCABULARY
 ===================================================
 
