@@ -1,44 +1,47 @@
 type Props = {
-onSelect: (topic: string) => void;
+  onSelect: (topic: string) => void;
+  selectedTopic: string;
 };
 
-export default function TopicCards({ onSelect }: Props) {
 const topics = [
-{ icon: "📦", name: "Bin Information" },
-{ icon: "📜", name: "Audit History" },
-{ icon: "🔄", name: "Movement Analytics" },
-{ icon: "📊", name: "Inventory Analytics" },
-{ icon: "👤", name: "Employee Analytics" },
-{ icon: "📈", name: "Purchase Analytics" },
+  { icon: "📦", name: "Bin Information" },
+  { icon: "📜", name: "Audit History" },
+  { icon: "🔄", name: "Movement Analytics" },
+  { icon: "📊", name: "Inventory Analytics" },
+  { icon: "👤", name: "Employee Analytics" },
+  { icon: "📈", name: "Purchase Analytics" },
 ];
 
-return (
-<div
-style={{
-display: "flex",
-flexWrap: "wrap",
-gap: "12px",
-marginBottom: "20px",
-justifyContent: "center",
-}}
->
-{topics.map((topic) => (
-<button
-key={topic.name}
-onClick={() => onSelect(topic.name)}
-style={{
-padding: "12px 18px",
-borderRadius: "10px",
-border: "1px solid #444",
-background: "#1f2937",
-color: "white",
-cursor: "pointer",
-fontSize: "14px",
-fontWeight: "500",
-minWidth: "180px",
-}}
->
-{topic.icon} {topic.name} </button>
-))} </div>
-);
+export default function TopicCards({ onSelect, selectedTopic }: Props) {
+  return (
+    <div style={{
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "8px",
+    }}>
+      {topics.map((topic) => {
+        const isActive = selectedTopic === topic.name;
+        return (
+          <button
+            key={topic.name}
+            onClick={() => onSelect(topic.name)}
+            style={{
+              padding: "8px 14px",
+              borderRadius: "20px",
+              border: isActive ? "2px solid #7c3aed" : "1.5px solid #e5e7eb",
+              background: isActive ? "#f3f0ff" : "white",
+              color: isActive ? "#7c3aed" : "#374151",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: isActive ? "600" : "500",
+              transition: "all 0.15s",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {topic.icon} {topic.name}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
