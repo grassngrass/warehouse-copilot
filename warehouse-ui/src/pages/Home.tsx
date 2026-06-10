@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { askQuestion } from "../services/api";
+import TopicCards from "../components/TopicCards";
+import SuggestedQuestions from "../components/SuggestedQuestions";
 
 export default function Home() {
   const [question, setQuestion] = useState("");
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [barcode, setBarcode] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("");
 
   async function handleAsk() {
     if (!question.trim()) return;
@@ -25,17 +29,42 @@ export default function Home() {
     <div style={{ padding: "30px" }}>
       <h1>Warehouse Copilot</h1>
 
-      <input
-        type="text"
-        placeholder="Ask a warehouse question..."
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-        style={{
-          width: "500px",
-          padding: "10px",
-          marginRight: "10px",
-        }}
-      />
+<TopicCards
+  onSelect={(topic) => setSelectedTopic(topic)}
+/>
+
+{selectedTopic && (
+  <div style={{ marginBottom: "20px" }}>
+    <input
+      type="text"
+      placeholder="Enter Barcode (optional)"
+      value={barcode}
+      onChange={(e) => setBarcode(e.target.value)}
+      style={{
+        width: "300px",
+        padding: "10px",
+      }}
+    />
+  </div>
+)}
+
+<SuggestedQuestions
+  topic={selectedTopic}
+  barcode={barcode}
+  onQuestionClick={(q) => setQuestion(q)}
+/>
+
+<input
+  type="text"
+  placeholder="Ask a warehouse question..."
+  value={question}
+  onChange={(e) => setQuestion(e.target.value)}
+  style={{
+    width: "500px",
+    padding: "10px",
+    marginRight: "10px",
+  }}
+/>
 
       <button onClick={handleAsk}>
         Ask
@@ -45,15 +74,25 @@ export default function Home() {
 
       {response && (
         <div style={{ marginTop: "20px" }}>
-          <h3>Generated SQL</h3>
-
-          <pre>{response.sql}</pre>
-
-          <h3>Result</h3>
-
-          <pre>
-            {JSON.stringify(response.result, null, 2)}
-          </pre>
+          
+          <div
+  style={{
+    background: "#111827",
+    padding: "15px",
+    borderRadius: "10px",
+    marginTop: "20px",
+  }}
+>
+  {response.result.map((row: any, index: number) => (
+    <div key={index}>
+      {Object.entries(row).map(([key, value]) => (
+        <p key={key}>
+          <strong>{key}:</strong> {String(value)}
+        </p>
+      ))}
+    </div>
+  ))}
+</div>
         </div>
       )}
     </div>
