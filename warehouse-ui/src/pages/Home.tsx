@@ -13,7 +13,14 @@ const TOPICS = [
   { icon: "👤", name: "Employee Analytics" },
   { icon: "📈", name: "Purchase Analytics" },
 ];
-
+const OVERVIEW_QUESTIONS: Record<string, string> = {
+  "Bin Information": "Show total bins count and which plant has most bins",
+  "Audit History": "Show total audit count and most recent audit",
+  "Movement Analytics": "Show total movements and most moved bin",
+  "Inventory Analytics": "Show which material has highest quantity and total materials",
+  "Employee Analytics": "Show most active employee and total employee updates",
+  "Purchase Analytics": "Show which year has maximum purchases and total purchase count",
+};
 const QUESTIONS: Record<string, string[]> = {
   "Movement Analytics": [
     "Show movement history",
@@ -66,7 +73,7 @@ export default function Home() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [barcode, setBarcode] = useState("");
-  
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const [messages, setMessages] = useState<Message[]>([
@@ -86,47 +93,40 @@ export default function Home() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  function handleTopicSelect(topic: string) {
-    // Add user "message" selecting topic
-    const userMsg: Message = { sender: "user", text: topic, type: "text" };
+  async function handleTopicSelect(topic: string) {
+  const userMsg: Message = { sender: "user", text: topic, type: "text" };
+  setMessages(prev => [...prev, userMsg]);
+  setLoading(true);
 
-    const needsBarcode = QUESTIONS[topic]?.some(q => BARCODE_QUESTIONS.includes(q));
-
-    if (needsBarcode) {
-      // setPendingTopic(topic);
-      setMessages(prev => [
-        ...prev,
-        userMsg,
-        {
-          sender: "bot",
-          text: `Sure! For ${topic}, some queries need a barcode. Enter it below (or skip for general queries):`,
-          type: "text",
-        },
-        {
-          sender: "bot",
-          text: "",
-          type: "barcode-input",
-          topic,
-        },
-      ]);
+  try {
+    const data = await askQuestion(OVERVIEW_QUESTIONS[topic]);
+    let overview = "";
+    if (data.result?.length > 0) {
+      overview = data.result
+        .map((row: Record<string, unknown>) =>
+          Object.entries(row)
+            .map(([k, v]) => `${k}: ${String(v ?? "")}`)
+            .join("\n")
+        )
+        .join("\n\n");
     } else {
-      setMessages(prev => [
-        ...prev,
-        userMsg,
-        {
-          sender: "bot",
-          text: `Sure! What would you like to know about ${topic}?`,
-          type: "text",
-        },
-        {
-          sender: "bot",
-          text: "",
-          type: "suggestions",
-          topic,
-        },
-      ]);
+      overview = "No overview data available.";
     }
+
+    setMessages(prev => [
+      ...prev,
+      { sender: "bot", text: overview, type: "text" },
+      { sender: "bot", text: "", type: "barcode-input", topic },
+    ]);
+  } catch {
+    setMessages(prev => [
+      ...prev,
+      { sender: "bot", text: "", type: "barcode-input", topic },
+    ]);
   }
+
+  setLoading(false);
+}
 
   function handleBarcodeSubmit(topic: string) {
     setMessages(prev => [
@@ -160,6 +160,7 @@ export default function Home() {
 
   async function handleAsk(overrideQuestion?: string) {
     const q = (overrideQuestion ?? question).trim();
+    setRecentSearches(prev => [q, ...prev.filter(s => s !== q)].slice(0, 10));
     if (!q) return;
 
     const userMsg: Message = { sender: "user", text: q, type: "text" };
@@ -201,7 +202,7 @@ export default function Home() {
 
   return (
     <div style={{ display: "flex", height: "100vh", background: "#f0f2f5", width: "100%" }}>
-      <Sidebar />
+      <Sidebar recentSearches={recentSearches} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         {/* Header */}
